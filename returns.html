@@ -1,10 +1,11 @@
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Return Formatter</title>
+  <title>Norda Return Formatter</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:900px;margin:28px auto;padding:20px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:800px;margin:40px auto;padding:20px}
     textarea,input{width:100%;padding:10px;font-family:monospace;font-size:14px;border:1px solid #ddd;border-radius:6px}
     textarea{height:140px}
     pre{background:#f6f6f8;padding:12px;border-radius:8px;white-space:pre-wrap}
@@ -16,15 +17,15 @@
   </style>
 </head>
 <body>
-  <h1>Return Formatter</h1>
+  <h1>Norda Return Formatter</h1>
   <p class="muted">Paste the source string (example below), optionally enter an Ecom Order ID and your initials, then press <strong>Format</strong>.</p>
 
   <div class="label">Input</div>
-  <textarea id="input">Return Identifier: 9988
-Returning Order Identifier: 922854</textarea>
+  <textarea id="input">Return Identifier: 9999
+Returning Order Identifier: 12345678</textarea>
 
   <div class="label" style="margin-top:10px">Ecom Order ID</div>
-  <input type="text" id="ecomId" placeholder="Enter Ecom Order ID (e.g., #ECOM)" />
+  <input type="text" id="ecomId" placeholder="Enter Ecom Order ID (e.g., #0000)" />
 
   <div class="label" style="margin-top:10px">Your Initials</div>
   <input type="text" id="initials" placeholder="Enter your initials (e.g., RCD)" />
