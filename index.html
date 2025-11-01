@@ -3,93 +3,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Return Formatter</title>
+  <title>RaphCD Tools</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:800px;margin:40px auto;padding:20px}
-    textarea,input{width:100%;padding:10px;font-family:monospace;font-size:14px}
-    textarea{height:120px}
-    pre{background:#f6f6f8;padding:12px;border-radius:8px}
-    button{padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
-    .row{display:flex;gap:8px;margin-top:10px}
-    .label{font-size:13px;color:#333;margin-bottom:6px}
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: #fafafa;
+      color: #222;
+      margin: 0;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #555;
+      margin-bottom: 40px;
+    }
+    .links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+    .card a {
+      text-decoration: none;
+      color: #0d6efd;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    footer {
+      margin-top: 50px;
+      font-size: 0.9rem;
+      color: #888;
+    }
   </style>
 </head>
 <body>
-  <h1>Return Formatter</h1>
-  <p>Paste the source string (example below), optionally enter an Ecom Order ID, and press <strong>Format</strong>.</p>
+  <h1>RaphCD Tools & Utilities</h1>
+  <p>Collection of simple tools and utilities hosted on GitHub Pages.</p>
 
-  <div class="label">Input</div>
-  <textarea id="input">Return Identifier: 9988
-Returning Order Identifier: 922854</textarea>
+  <div class="links">
+    <div class="card">
+      <a href="returns.html">Return Formatter</a>
+      <p>Paste return data and auto-format with IDs and approval info.</p>
+    </div>
 
-  <div class="label" style="margin-top:10px">Ecom Order ID</div>
-  <input type="text" id="ecomId" placeholder="Enter Ecom Order ID (e.g., #ECOM)" />
-
-  <div class="row">
-    <button id="format">Format</button>
-    <button id="copy">Copy Output</button>
-    <button id="clear">Clear</button>
+    <!-- Add more tools here -->
+    <div class="card">
+      <a href="example.html">Example Tool</a>
+      <p>Placeholder for your next page or script.</p>
+    </div>
   </div>
 
-  <div style="margin-top:18px" class="label">Output</div>
-  <pre id="output">(formatted output will appear here)</pre>
+  <footer>
+    © <span id="year"></span> RaphCD — Built with 💻 on GitHub Pages
+  </footer>
 
   <script>
-    function pad2(n){return String(n).padStart(2,'0')}
-    function todayDDMMYYYY(){const d=new Date();return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()}
-
-    function parseAndFormat(text, ecom){
-      const patterns = [
-        /Return Identifier\s*:\s*(\d+)/i,
-        /Return ID\s*:?\s*(\d+)/i,
-        /Return\s*#\s*(\d+)/i
-      ];
-      const orderPatterns = [
-        /Returning Order Identifier\s*:\s*(\d+)/i,
-        /Returning Order\s*:?\s*(\d+)/i,
-        /Order Identifier\s*:\s*(\d+)/i,
-        /Order ID\s*:?\s*(\d+)/i
-      ];
-
-      let returnId = null;
-      let orderId = null;
-
-      for(const p of patterns){const m=text.match(p); if(m){returnId=m[1]; break}}
-      for(const p of orderPatterns){const m=text.match(p); if(m){orderId=m[1]; break}}
-
-      if(!returnId||!orderId){
-        const nums = text.match(/\d{2,}/g) || [];
-        if(!returnId && nums[0]) returnId = nums[0];
-        if(!orderId && nums[1]) orderId = nums[1];
-      }
-
-      if(!returnId && !orderId) return '(no recognizable IDs found)';
-
-      const date = todayDDMMYYYY();
-      const ecomSuffix = ecom ? "/" + ecom : "";
-      return `Returning Order: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}\nApproved by : RCD\n${date}`;
-    }
-
-    document.getElementById('format').addEventListener('click', ()=>{
-      const input = document.getElementById('input').value;
-      const ecom = document.getElementById('ecomId').value.trim();
-      const out = parseAndFormat(input, ecom);
-      document.getElementById('output').textContent = out;
-    });
-
-    document.getElementById('copy').addEventListener('click', async ()=>{
-      const text = document.getElementById('output').textContent;
-      try{ await navigator.clipboard.writeText(text); alert('Output copied to clipboard') }
-      catch(e){ alert('Copy failed — select and copy manually') }
-    });
-
-    document.getElementById('clear').addEventListener('click', ()=>{
-      document.getElementById('input').value='';
-      document.getElementById('ecomId').value='';
-      document.getElementById('output').textContent='(formatted output will appear here)';
-    });
-
-    document.getElementById('format').click();
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
+
