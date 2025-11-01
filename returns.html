@@ -89,8 +89,12 @@ Returning Order Identifier: 922854</textarea>
       catch(e){ alert('Copy failed — select and copy manually') }
     });
 
-    document.getElementById('clear').addEventListener('click', ()=>{
-      document.getElementById('input').value='';
+     document.getElementById('clear').addEventListener('click', ()=>{
+      let inputValue = document.getElementById('input').value;
+      // Remove numbers after 'Return Identifier:' and 'Returning Order Identifier:'
+      inputValue = inputValue.replace(/(Return Identifier\s*:\s*)\d+/i, '$1');
+      inputValue = inputValue.replace(/(Returning Order Identifier\s*:\s*)\d+/i, '$1');
+      document.getElementById('input').value = inputValue.trim();
       document.getElementById('ecomId').value='';
       document.getElementById('output').textContent='(formatted output will appear here)';
     });
