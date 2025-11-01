@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Return Formatter</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:800px;margin:40px auto;padding:20px}
+    textarea,input{width:100%;padding:10px;font-family:monospace;font-size:14px}
+    textarea{height:120px}
+    pre{background:#f6f6f8;padding:12px;border-radius:8px}
+    button{padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
+    .row{display:flex;gap:8px;margin-top:10px}
+    .label{font-size:13px;color:#333;margin-bottom:6px}
+  </style>
+</head>
+<body>
+  <h1>Return Formatter</h1>
+  <p>Paste the source string (example below), optionally enter an Ecom Order ID and your initials, then press <strong>Format</strong>.</p>
+
+  <div class="label">Input</div>
+  <textarea id="input">Return Identifier: 9988
+Returning Order Identifier: 922854</textarea>
+
+  <div class="label" style="margin-top:10px">Ecom Order ID</div>
+  <input type="text" id="ecomId" placeholder="Enter Ecom Order ID (e.g., #ECOM)" />
+
+  <div class="label" style="margin-top:10px">Your Initials</div>
+  <input type="text" id="initials" placeholder="Enter your initials (e.g., RCD)" />
+
+  <div class="row">
+    <button id="format">Format</button>
+    <button id="copy">Copy Output</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <div style="margin-top:18px" class="label">Output</div>
+  <pre id="output">(formatted output will appear here)</pre>
+
+  <script>
+    function pad2(n){return String(n).padStart(2,'0')}
+    function todayDDMMYYYY(){const d=new Date();return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()}
+
+    function parseAndFormat(text, ecom, initials){
+      const patterns = [
+        /Return Identifier\s*:\s*(\d+)/i,
+        /Return ID\s*:?\s*(\d+)/i,
+        /Return\s*#\s*(\d+)/i
+      ];
+      const orderPatterns = [
+        /Returning Order Identifier\s*:\s*(\d+)/i,
+        /Returning Order\s*:?\s*(\d+)/i,
+        /Order Identifier\s*:\s*(\d+)/i,
+        /Order ID\s*:?\s*(\d+)/i
+      ];
+
+      let returnId = null;
+      let orderId = null;
+
+      for(const p of patterns){const m=text.match(p); if(m){returnId=m[1]; break}}
+      for(const p of orderPatterns){const m=text.match(p); if(m){orderId=m[1]; break}}
+
+      if(!returnId||!orderId){
+        const nums = text.match(/\d{2,}/g) || [];
+        if(!returnId && nums[0]) returnId = nums[0];
+        if(!orderId && nums[1]) orderId = nums[1];
+      }
+
+      if(!returnId && !orderId) return '(no recognizable IDs found)';
+
+      const date = todayDDMMYYYY();
+      const cleanedEcom = ecom ? (ecom.startsWith('#') ? ecom : '#' + ecom) : '';
+      const ecomSuffix = cleanedEcom ? "/" + cleanedEcom : "";
+      const approver = initials || 'RCD';
+      return `Returning Order: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}\nApproved by : ${approver}\n${date}`;
+    }
+
+    document.getElementById('format').addEventListener('click', ()=>{
+      const input = document.getElementById('input').value;
+      const ecom = document.getElementById('ecomId').value.trim();
+      const initials = document.getElementById('initials').value.trim();
+      const out = parseAndFormat(input, ecom, initials);
+      document.getElementById('output').textContent = out;
+    });
+
+    document.getElementById('copy').addEventListener('click', async ()=>{
+      const text = document.getElementById('output').textContent;
+      try{ await navigator.clipboard.writeText(text); alert('Output copied to clipboard') }
+      catch(e){ alert('Copy failed — select and copy manually') }
+    });
+
+    document.getElementById('clear').addEventListener('click', ()=>{
+      document.getElementById('input').value='';
+      document.getElementById('ecomId').value='';
+      document.getElementById('output').textContent='(formatted output will appear here)';
+    });
+
+    document.getElementById('format').click();
+  </script>
+</body>
+</html>
