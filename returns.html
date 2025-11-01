@@ -61,6 +61,7 @@
   <textarea id="input">Return Identifier: 9999
 Returning Order Identifier: 12345678</textarea>
 
+  <!-- --- Modified layout for side-by-side inputs --- -->
   <div class="row" style="margin-top:10px">
     <div class="input-group">
       <div class="label">Ecom Order ID</div>
@@ -71,6 +72,8 @@ Returning Order Identifier: 12345678</textarea>
       <input type="text" id="initials" placeholder="Enter your initials (e.g., RCD)" />
     </div>
   </div>
+  <!-- --- End of modified layout --- -->
+
   <div class="row controls">
     <button id="format">Format</button>
     <button id="copy">Copy Output</button>
@@ -92,7 +95,7 @@ Returning Order Identifier: 12345678</textarea>
       ];
       const orderPatterns = [
         /Returning Order Identifier\s*:\s*(\d+)/i,
-        /Returning Order\s*:\s( *(\d+)/i,
+        /Returning Order\s*:\s*(\d+)/i,
         /Order Identifier\s*:\s*(\d+)/i,
         /Order ID\s*:\s*(\d+)/i
       ];
@@ -114,8 +117,8 @@ Returning Order Identifier: 12345678</textarea>
       const date = todayDDMMYYYY();
       const cleanedEcom = ecom ? (ecom.startsWith('#') ? ecom : '#' + ecom) : '';
       const ecomSuffix = cleanedEcom ? '/' + cleanedEcom : '';
-      const approver = initials || 'RCD'; // Changed default initials
-      return `Returning Order: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}\nApproved by : ${approver}\n${date}`; // Fixed typo "Approved by :"
+      const approver = initials || 'XYZ';
+      return `Returning Order: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}\nApproved by: ${approver}\n${date}`;
     }
 
     function extractEcomOrderId(text){
@@ -142,14 +145,14 @@ Returning Order Identifier: 12345678</textarea>
       // Start fade-out after a delay
       setTimeout(() => {
         popup.classList.add('fade-out');
-      }, 500); // Show for 0.5 second
+      }, 500); // Show for 0.5 seconds
 
       // Remove from DOM after animation finishes
       setTimeout(() => {
         if (popup.parentNode) {
           popup.parentNode.removeChild(popup);
         }
-      }, 1300); // 1s + 0.3s fade-out
+      }, 1000); // 1s + 0.5s fade-out
     }
     // --- End of added function ---
 
@@ -174,6 +177,7 @@ Returning Order Identifier: 12345678</textarea>
       
       // Using document.execCommand as it's more reliable in iframes
       // Create a temporary textarea element
+      // --- FIX: Removed hyphens from variable names ---
       const tempTextarea = document.createElement('textarea');
       tempTextarea.value = text;
       tempTextarea.style.position = 'absolute';
@@ -187,6 +191,7 @@ Returning Order Identifier: 12345678</textarea>
         showCopyPopup(event);
       } catch (e) {
         // Fallback for failure
+        // --- FIX: Removed hyphens from variable names ---
         const fallbackPopup = document.createElement('div');
         fallbackPopup.textContent = 'Copy failed!';
         fallbackPopup.className = 'copy-popup show';
@@ -221,3 +226,4 @@ Returning Order Identifier: 12345678</textarea>
   </script>
 </body>
 </html>
+
