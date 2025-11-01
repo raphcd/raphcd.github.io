@@ -100,7 +100,7 @@ Returning Order Identifier: 12345678</textarea>
 
     document.getElementById('copy').addEventListener('click', async ()=>{
       const text = document.getElementById('output').textContent;
-      try{ await navigator.clipboard.writeText(text); alert('Output copied to clipboard') }
+      try{ await navigator.clipboard.writeText(text); }
       catch(e){ alert('Copy failed — select and copy manually') }
     });
 
