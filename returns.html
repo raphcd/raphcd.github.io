@@ -155,21 +155,32 @@ Returning Order Identifier: 12345678</textarea>
       }, 1000); // 1s + 0.5s fade-out
     }
     // --- End of added function ---
+    
+   document.getElementById('format').addEventListener('click', () => {
+  const input = document.getElementById('input').value;
+  let ecom = document.getElementById('ecomId').value.trim();
 
-    document.getElementById('format').addEventListener('click', ()=>{
-      const input = document.getElementById('input').value;
-      let ecom = document.getElementById('ecomId').value.trim();
-      if(!ecom){
-        const extracted = extractEcomOrderId(input);
-        if(extracted){
-          ecom = extracted;
-          document.getElementById('ecomId').value = '#' + extracted;
-        }
-      }
-      const initials = document.getElementById('initials').value.trim();
-      const out = parseAndFormat(input, ecom, initials);
-      document.getElementById('output').textContent = out;
-    });
+  // Always re-extract and overwrite if found in the input
+  const extracted = extractEcomOrderId(input);
+  if (extracted) {
+    ecom = extracted;
+    document.getElementById('ecomId').value = '#' + extracted;
+  }
+
+  const initials = document.getElementById('initials').value.trim();
+  const out = parseAndFormat(input, ecom, initials);
+  document.getElementById('output').textContent = out;
+});
+
+// 🆕 Automatically detect and replace Ecom ID as soon as user pastes or types
+document.getElementById('input').addEventListener('input', () => {
+  const inputText = document.getElementById('input').value;
+  const extracted = extractEcomOrderId(inputText);
+  if (extracted) {
+    document.getElementById('ecomId').value = '#' + extracted;
+  }
+});
+
 
     // --- Modified 'copy' click listener ---
     document.getElementById('copy').addEventListener('click', (event) => {
