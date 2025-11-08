@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Norda Return Formatter</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:800px;margin:40px auto;padding:20px}
+    textarea,input{width:100%;padding:10px;font-family:monospace;font-size:14px;border:1px solid #ddd;border-radius:6px;box-sizing: border-box;} /* Added box-sizing */
+    textarea{height:140px}
+    pre{background:#f6f6f8;padding:12px;border-radius:8px;white-space:pre-wrap}
+    button{padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
+    .row{display:flex;gap:8px;margin-top:10px}
+    .label{font-size:13px;color:#333;margin-bottom:6px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    .muted{color:#666;font-size:13px}
+    
+    /* --- Added styles for the popup --- */
+    .copy-popup {
+      position: fixed;
+      background-color: #222;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      pointer-events: none; /* Don't let it block mouse events */
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      transform: translate(-50%, -150%); /* Position it above the cursor */
+    }
+
+    .copy-popup.show {
+      opacity: 1;
+      transform: translate(-50%, -150%);
+    }
+
+    .copy-popup.fade-out {
+      opacity: 0;
+      transform: translate(-50%, -200%); /* Move up slightly as it fades */
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+    /* --- End of added styles --- */
+
+    /* --- Added styles for side-by-side inputs --- */
+    .input-group {
+      flex: 1; /* Each group will take up equal space */
+      min-width: 0; /* Prevent flex overflow */
+    }
+    /* --- End of added styles --- */
+
+  </style>
+</head>
+<body>
+  <h1>Norda Return Formatter</h1>
+  <p class="muted">Paste the source string (example below), optionally enter an Ecom Order ID and your initials, then press <strong>Format</strong>.</p>
+  <p class="muted">For maximum laziness, you can paste the entire Logentic Order details, and it will automatically extract the required info and ignore the rest.</p>
+
+  <div class="label">Input</div>
+  <textarea id="input">Return Identifier: 9999
+Returning Order Identifier: 12345678</textarea>
+
+  <div class="row" style="margin-top:10px">
+    <div class="input-group">
+      <div class="label">Ecom Order ID</div>
+      <input type="text" id="ecomId" placeholder="Enter Ecom Order ID (e.g., #0000)" />
+    </div>
+    <div class="input-group">
+      <div class="label">Your Initials</div>
+      <input type="text" id="initials" placeholder="Enter your initials (e.g., RCD)" />
+    </div>
+  </div>
+  <div class="row controls">
+    <button id="format">Format</button>
+    <button id="copy">Copy Output</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <div style="margin-top:18px" class="label">Output</div>
+  <pre id="output">(formatted output will appear here)</pre>
+
+  <script>
+    function pad2(n){return String(n).padStart(2,'0')}
+    function todayDDMMYYYY(){const d=new Date();return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()}
+
+    function parseAndFormat(text, ecom, initials){
+      const patterns = [
+        /Return Identifier\s*:\s*(\d+)/i,
+        /Return ID\s*:\s*(\d+)/i,
+        /Return\s*#\s*(\d+)/i
+      ];
+      const orderPatterns = [
+        /Returning Order Identifier\s*:\s*(\d+)/i,
+        /Returning Order\s*:\s*(\d+)/i,
+        /Order Identifier\s*:\s*(\d+)/i,
+        /Order ID\s*:\s*(\d+)/i
+      ];
+
+      let returnId = null;
+      let orderId = null;
+
+      for(const p of patterns){const m=text.match(p); if(m){returnId=m[1]; break}}
+      for(const p of orderPatterns){const m=text.match(p); if(m){orderId=m[1]; break}}
+
+      if(!returnId || !orderId){
+        const nums = text.match(/\d{2,}/g) || [];
+        if(!returnId && nums[0]) returnId = nums[0];
+        if(!orderId && nums[1]) orderId = nums[1];
+      }
+
+      if(!returnId && !orderId) return '(no recognizable IDs found)';
+
+      const date = todayDDMMYYYY();
+      const cleanedEcom = ecom ? (ecom.startsWith('#') ? ecom : '#' + ecom) : '';
+      const ecomSuffix = cleanedEcom ? '/' + cleanedEcom : '';
+      const approver = initials || 'XYZ';
+      return `Returning Order: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}\nApproved by: ${approver}\n${date}`;
+    }
+
+    function extractEcomOrderId(text){
+      const m = text.match(/E[- ]?Commerce\s+Order\s+ID\s*#?\s*(\d+)/i);
+      return m ? m[1] : '';
+    }
+
+    // --- Added function to show the popup ---
+    function showCopyPopup(e) {
+      const popup = document.createElement('div');
+      popup.textContent = 'Copied!';
+      popup.className = 'copy-popup';
+      document.body.appendChild(popup);
+
+      // Position near cursor
+      popup.style.left = `${e.clientX}px`;
+      popup.style.top = `${e.clientY}px`;
+
+      // Trigger the show animation
+      setTimeout(() => {
+        popup.classList.add('show');
+      }, 20); // Small delay to allow element to be rendered
+
+      // Start fade-out after a delay
+      setTimeout(() => {
+        popup.classList.add('fade-out');
+      }, 500); // Show for 0.5 seconds
+
+      // Remove from DOM after animation finishes
+      setTimeout(() => {
+        if (popup.parentNode) {
+          popup.parentNode.removeChild(popup);
+        }
+      }, 1000); // 1s + 0.5s fade-out
+    }
+    // --- End of added function ---
+    
+    // 🆕 Function to run all formatting logic
+    function runFormatter() {
+      const input = document.getElementById('input').value;
+      let ecom = document.getElementById('ecomId').value.trim();
+
+      // Always re-extract and overwrite if found in the input
+      const extracted = extractEcomOrderId(input);
+      if (extracted) {
+        ecom = extracted;
+        document.getElementById('ecomId').value = '#' + extracted;
+      }
+
+      const initials = document.getElementById('initials').value.trim();
+      const out = parseAndFormat(input, ecom, initials);
+      document.getElementById('output').textContent = out;
+    }
+
+    // 🆕 Update output automatically when any input changes
+    document.getElementById('format').addEventListener('click', runFormatter);
+    document.getElementById('input').addEventListener('input', runFormatter);
+    document.getElementById('ecomId').addEventListener('input', runFormatter);
+    document.getElementById('initials').addEventListener('input', runFormatter);
+
+
+    // --- Modified 'copy' click listener ---
+    document.getElementById('copy').addEventListener('click', (event) => {
+      const text = document.getElementById('output').textContent;
+      
+      // Using document.execCommand as it's more reliable in iframes
+      // Create a temporary textarea element
+      // --- FIX: Removed hyphens from variable names ---
+      const tempTextarea = document.createElement('textarea');
+      tempTextarea.value = text;
+      tempTextarea.style.position = 'absolute';
+      tempTextarea.style.left = '-9999px';
+      document.body.appendChild(tempTextarea);
+      
+      try {
+        tempTextarea.select();
+        document.execCommand('copy');
+        // Show the popup on success
+        showCopyPopup(event);
+      } catch (e) {
+        // Fallback for failure
+        // --- FIX: Removed hyphens from variable names ---
+        const fallbackPopup = document.createElement('div');
+        fallbackPopup.textContent = 'Copy failed!';
+        fallbackPopup.className = 'copy-popup show';
+        fallbackPopup.style.backgroundColor = '#d9534f'; // Red color for error
+        document.body.appendChild(fallbackPopup);
+
+        fallbackPopup.style.left = `${event.clientX}px`;
+        fallbackPopup.style.top = `${event.clientY}px`;
+
+        setTimeout(() => {
+          fallbackPopup.classList.add('fade-out');
+        }, 1500);
+        setTimeout(() => {
+          if (fallbackPopup.parentNode) {
+            fallbackPopup.parentNode.removeChild(fallbackPopup);
+          }
+        }, 2000);
+      } finally {
+        // Remove the temporary textarea
+        document.body.removeChild(tempTextarea);
+      }
+    });
+    // --- End of modified listener ---
+
+    document.getElementById('clear').addEventListener('click', ()=>{
+      document.getElementById('input').value = 'Return Identifier: \nReturning Order Identifier:';
+      document.getElementById('ecomId').value='';
+      document.getElementById('initials').value=''; // Also clear initials
+      document.getElementById('output').textContent='(formatted output will appear here)';
+      runFormatter(); // Run formatter to update output after clearing
+    });
+
+    // Run the formatter on initial page load
+    runFormatter();
+  </script>
+</body>
+</html>
