@@ -54,7 +54,7 @@
 </head>
 <body>
   <h1>Norda Return Formatter</h1>
-  <p class="muted">Paste the source string (example below), optionally enter an Ecom Order ID and your initials, then press <strong>Format</strong>.</p>
+  <p class="muted">Paste the source string (example below), optionally enter an Ecom Order ID and your initials. The output will update automatically.</p>
   <p class="muted">For maximum laziness, you can paste the entire Logentic Order details, and it will automatically extract the required info and ignore the rest.</p>
 
   <div class="label">Input</div>
@@ -72,7 +72,6 @@ Returning Order Identifier: 12345678</textarea>
     </div>
   </div>
   <div class="row controls">
-    <button id="format">Format</button>
     <button id="copy">Copy Output</button>
     <button id="clear">Clear</button>
   </div>
@@ -171,7 +170,7 @@ Returning Order Identifier: 12345678</textarea>
     }
 
     // 🆕 Update output automatically when any input changes
-    document.getElementById('format').addEventListener('click', runFormatter);
+    // document.getElementById('format').addEventListener('click', runFormatter); // 👈 REMOVED
     document.getElementById('input').addEventListener('input', runFormatter);
     document.getElementById('ecomId').addEventListener('input', runFormatter);
     document.getElementById('initials').addEventListener('input', runFormatter);
