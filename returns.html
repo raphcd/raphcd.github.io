@@ -141,14 +141,14 @@ Returning Order Identifier: 12345678</textarea>
       // Start fade-out after a delay
       setTimeout(() => {
         popup.classList.add('fade-out');
-      }, 500); // Show for 0.5 seconds
+      }, 300); // Show for 0.3 seconds
 
       // Remove from DOM after animation finishes
       setTimeout(() => {
         if (popup.parentNode) {
           popup.parentNode.removeChild(popup);
         }
-      }, 500); // 1s + 0.5s fade-out
+      }, 1000); // 1s + 0.5s fade-out
     }
     // --- End of added function ---
     
