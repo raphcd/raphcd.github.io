@@ -71,6 +71,14 @@ Returning Order Identifier: 12345678</textarea>
       <input type="text" id="initials" placeholder="Enter your initials (e.g., RCD)" />
     </div>
   </div>
+
+  <div style="margin-top:12px">
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;user-select:none;">
+      <input type="checkbox" id="exchangeCheck" style="width:auto;margin:0;">
+      Is this a straight exchange?
+    </label>
+  </div>
+
   <div class="row controls">
     <button id="copy">Copy Output</button>
     <button id="clear">Clear</button>
@@ -83,7 +91,8 @@ Returning Order Identifier: 12345678</textarea>
     function pad2(n){return String(n).padStart(2,'0')}
     function todayDDMMYYYY(){const d=new Date();return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()}
 
-    function parseAndFormat(text, ecom, initials){
+    // Updated signature to accept isExchange
+    function parseAndFormat(text, ecom, initials, isExchange){
       const patterns = [
         /Return Identifier\s*:\s*(\d+)/i,
         /Return ID\s*:\s*(\d+)/i,
@@ -114,7 +123,12 @@ Returning Order Identifier: 12345678</textarea>
       const cleanedEcom = ecom ? (ecom.startsWith('#') ? ecom : '#' + ecom) : '';
       const ecomSuffix = cleanedEcom ? '/' + cleanedEcom : '';
       const approver = initials || 'XYZ';
-      return `Returning Order: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}\nApproved by: ${approver}\n${date}`;
+
+      // Logic for Straight Exchange
+      const orderLabel = isExchange ? 'Exchanging Order' : 'Returning Order';
+      const exchangeLine = isExchange ? '\nExchange Order: ' : '';
+
+      return `${orderLabel}: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}${exchangeLine}\nApproved by: ${approver}\n${date}`;
     }
 
     function extractEcomOrderId(text){
@@ -165,15 +179,19 @@ Returning Order Identifier: 12345678</textarea>
       }
 
       const initials = document.getElementById('initials').value.trim();
-      const out = parseAndFormat(input, ecom, initials);
+      // Get checkbox state
+      const isExchange = document.getElementById('exchangeCheck').checked;
+      
+      const out = parseAndFormat(input, ecom, initials, isExchange);
       document.getElementById('output').textContent = out;
     }
 
     // 🆕 Update output automatically when any input changes
-    // document.getElementById('format').addEventListener('click', runFormatter); // 👈 REMOVED
     document.getElementById('input').addEventListener('input', runFormatter);
     document.getElementById('ecomId').addEventListener('input', runFormatter);
     document.getElementById('initials').addEventListener('input', runFormatter);
+    // Added listener for checkbox
+    document.getElementById('exchangeCheck').addEventListener('change', runFormatter);
 
 
     // --- Modified 'copy' click listener ---
@@ -182,7 +200,6 @@ Returning Order Identifier: 12345678</textarea>
       
       // Using document.execCommand as it's more reliable in iframes
       // Create a temporary textarea element
-      // --- FIX: Removed hyphens from variable names ---
       const tempTextarea = document.createElement('textarea');
       tempTextarea.value = text;
       tempTextarea.style.position = 'absolute';
@@ -196,7 +213,6 @@ Returning Order Identifier: 12345678</textarea>
         showCopyPopup(event);
       } catch (e) {
         // Fallback for failure
-        // --- FIX: Removed hyphens from variable names ---
         const fallbackPopup = document.createElement('div');
         fallbackPopup.textContent = 'Copy failed!';
         fallbackPopup.className = 'copy-popup show';
@@ -225,6 +241,7 @@ Returning Order Identifier: 12345678</textarea>
       document.getElementById('input').value = 'Return Identifier: \nReturning Order Identifier:';
       document.getElementById('ecomId').value='';
       document.getElementById('initials').value=''; // Also clear initials
+      document.getElementById('exchangeCheck').checked = false; // Reset checkbox
       document.getElementById('output').textContent='(formatted output will appear here)';
       runFormatter(); // Run formatter to update output after clearing
     });
