@@ -48,7 +48,7 @@
       flex: 1; /* Each group will take up equal space */
       min-width: 0; /* Prevent flex overflow */
     }
-    /* --- End of added styles --- */
+    /* --- End of styles --- */
 
   </style>
 </head>
@@ -127,8 +127,9 @@ Returning Order Identifier: 12345678</textarea>
       // Logic for Straight Exchange
       const orderLabel = isExchange ? 'Exchanging Order' : 'Returning Order';
       const exchangeLine = isExchange ? '\nExchange Order: ' : '';
+      const exchangeNotice = isExchange ? 'STRAIGHT EXCHANGE, ADD NOTE IN SHOPIFY\n' : '';
 
-      return `${orderLabel}: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}${exchangeLine}\nApproved by: ${approver}\n${date}`;
+      return `${exchangeNotice}${orderLabel}: ${orderId || '(not found)'}${ecomSuffix}\nReturn ID: ${returnId || '(not found)'}${exchangeLine}\nApproved by: ${approver}\n${date}`;
     }
 
     function extractEcomOrderId(text){
@@ -166,7 +167,7 @@ Returning Order Identifier: 12345678</textarea>
     }
     // --- End of added function ---
     
-    // 🆕 Function to run all formatting logic
+    // Function to run all formatting logic
     function runFormatter() {
       const input = document.getElementById('input').value;
       let ecom = document.getElementById('ecomId').value.trim();
@@ -186,7 +187,7 @@ Returning Order Identifier: 12345678</textarea>
       document.getElementById('output').textContent = out;
     }
 
-    // 🆕 Update output automatically when any input changes
+    // Update output automatically when any input changes
     document.getElementById('input').addEventListener('input', runFormatter);
     document.getElementById('ecomId').addEventListener('input', runFormatter);
     document.getElementById('initials').addEventListener('input', runFormatter);
