@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Norda Return Formatter</title>
+  <title>Norda Return Formatter 2.0</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:800px;margin:40px auto;padding:20px}
     textarea,input{width:100%;padding:10px;font-family:monospace;font-size:14px;border:1px solid #ddd;border-radius:6px;box-sizing: border-box;}
@@ -49,19 +49,19 @@
 </head>
 <body>
   <h1>Norda Return Formatter</h1>
-  <p class="muted">Paste the AfterShip Returns email content (example below). The output will update automatically.</p>
+  <p class="muted">Paste the Aftership notes at the top right of Shopify (example below). The output will update automatically.</p>
 
   <div class="label">Input</div>
   <textarea id="input">2025-12-23 17:41:10
-[AfterShip Returns] RMA #7FV0IE19
+[AfterShip Returns] RMA #123
 Return request submitted
-Includes items: NORDA003-M-CINDER-10.5
-Shopify Return ID: 13756662065
-Shopify Return Name: #73034-R1</textarea>
+Includes items:
+Shopify Return ID:
+Shopify Return Name: #456-R1</textarea>
 
   <div class="row" style="margin-top:10px">
     <div class="input-group">
-      <div class="label">Ecom Order ID (Extracted)</div>
+      <div class="label">Shopify Order ID (Extracted)</div>
       <input type="text" id="ecomId" placeholder="Order ID" />
     </div>
     <div class="input-group">
