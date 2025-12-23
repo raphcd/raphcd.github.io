@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Norda Return Formatter</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:800px;margin:40px auto;padding:20px}
+    textarea,input{width:100%;padding:10px;font-family:monospace;font-size:14px;border:1px solid #ddd;border-radius:6px;box-sizing: border-box;}
+    textarea{height:140px}
+    pre{background:#f6f6f8;padding:12px;border-radius:8px;white-space:pre-wrap}
+    button{padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
+    .row{display:flex;gap:8px;margin-top:10px}
+    .label{font-size:13px;color:#333;margin-bottom:6px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    .muted{color:#666;font-size:13px}
+    
+    .copy-popup {
+      position: fixed;
+      background-color: #222;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      transform: translate(-50%, -150%);
+    }
+
+    .copy-popup.show {
+      opacity: 1;
+      transform: translate(-50%, -150%);
+    }
+
+    .copy-popup.fade-out {
+      opacity: 0;
+      transform: translate(-50%, -200%);
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Norda Return Formatter</h1>
+  <p class="muted">Paste the AfterShip Returns email content (example below). The output will update automatically.</p>
+
+  <div class="label">Input</div>
+  <textarea id="input">2025-12-23 17:41:10
+[AfterShip Returns] RMA #7FV0IE19
+Return request submitted
+Includes items: NORDA003-M-CINDER-10.5
+Shopify Return ID: 13756662065
+Shopify Return Name: #73034-R1</textarea>
+
+  <div class="row" style="margin-top:10px">
+    <div class="input-group">
+      <div class="label">Ecom Order ID (Extracted)</div>
+      <input type="text" id="ecomId" placeholder="Order ID" />
+    </div>
+    <div class="input-group">
+      <div class="label">Your Initials</div>
+      <input type="text" id="initials" placeholder="Enter your initials (e.g., RCD)" />
+    </div>
+  </div>
+
+  <div style="margin-top:12px">
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;user-select:none;">
+      <input type="checkbox" id="exchangeCheck" style="width:auto;margin:0;">
+      Is this a straight exchange?
+    </label>
+  </div>
+
+  <div class="row controls">
+    <button id="copy">Copy Output</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <div style="margin-top:18px" class="label">Output</div>
+  <pre id="output">(formatted output will appear here)</pre>
+
+  <script>
+    function pad2(n){return String(n).padStart(2,'0')}
+    function todayDDMMYYYY(){const d=new Date();return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()}
+
+    function parseAndFormat(text, ecom, initials, isExchange){
+      // --- NEW LOGIC (AfterShip) ---
+      // Matches "RMA #7FV0IE19" or "RMA 7FV0IE19"
+      const rmaPattern = /RMA\s*#?([A-Z0-9]+)/i;
+      
+      // Matches "Shopify Return Name: #73034-R1" and extracts just "73034"
+      const shopifyNamePattern = /Shopify Return Name:\s*#?(\d+)/i; 
+
+      let returnId = null;
+      let orderId = null;
+
+      // 1. Try New Format
+      const rmaMatch = text.match(rmaPattern);
+      if (rmaMatch) returnId = rmaMatch[1];
+
+      const shopifyMatch = text.match(shopifyNamePattern);
+      if (shopifyMatch) orderId = shopifyMatch[1];
+
+      // 2. Fallback to Old Format (Logentic) if new format failed
+      if (!returnId) {
+        const oldRetPatterns = [/Return Identifier\s*:\s*(\d+)/i, /Return ID\s*:\s*(\d+)/i];
+        for(const p of oldRetPatterns){const m=text.match(p); if(m){returnId=m[1]; break}}
+      }
+      if (!orderId) {
+        // If we didn't find Shopify Name, check if ecom input has value, otherwise look for old patterns
+        if (ecom) {
+            orderId = ecom.replace(/[^0-9]/g, '');
+        } else {
+            const oldOrdPatterns = [/Returning Order Identifier\s*:\s*(\d+)/i, /Order Identifier\s*:\s*(\d+)/i];
+            for(const p of oldOrdPatterns){const m=text.match(p); if(m){orderId=m[1]; break}}
+        }
+      }
+
+      // 3. Fallback: just grab numbers if desperate and nothing else found
+      if(!returnId || !orderId){
+        const nums = text.match(/\d{4,}/g) || [];
+        if(!returnId && nums[0]) returnId = nums[0];
+        if(!orderId && nums[1]) orderId = nums[1];
+      }
+
+      if(!returnId && !orderId) return '(no recognizable IDs found)';
+
+      // Formatting
+      const date = todayDDMMYYYY();
+      const approver = initials || 'XYZ';
+      
+      // Format IDs with hash prefixes as requested
+      const formattedOrderId = orderId ? `#${orderId}` : '(not found)';
+      const formattedReturnId = returnId ? `#${returnId}` : '(not found)';
+
+      // Logic for Straight Exchange
+      const orderLabel = isExchange ? 'Exchanging Order' : 'Returning Order';
+      const exchangeLine = isExchange ? '\nExchange Order: ' : '';
+      const exchangeNotice = isExchange ? 'STRAIGHT EXCHANGE, ADD NOTE IN SHOPIFY\n' : '';
+
+      return `${exchangeNotice}${orderLabel}: ${formattedOrderId}\nReturn ID: ${formattedReturnId}${exchangeLine}\nApproved by: ${approver}\n${date}`;
+    }
+
+    function extractEcomOrderId(text){
+      // Try New Format: Shopify Return Name
+      const mNew = text.match(/Shopify Return Name:\s*#?(\d+)/i);
+      if (mNew) return mNew[1];
+
+      // Try Old Format: E-Commerce Order ID
+      const mOld = text.match(/E[- ]?Commerce\s+Order\s+ID\s*#?\s*(\d+)/i);
+      if (mOld) return mOld[1];
+
+      return '';
+    }
+
+    function showCopyPopup(e) {
+      const popup = document.createElement('div');
+      popup.textContent = 'Copied!';
+      popup.className = 'copy-popup';
+      document.body.appendChild(popup);
+      popup.style.left = `${e.clientX}px`;
+      popup.style.top = `${e.clientY}px`;
+      setTimeout(() => { popup.classList.add('show'); }, 20);
+      setTimeout(() => { popup.classList.add('fade-out'); }, 300);
+      setTimeout(() => { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 1000);
+    }
+    
+    function runFormatter() {
+      const input = document.getElementById('input').value;
+      let ecom = document.getElementById('ecomId').value.trim();
+
+      // Check for Order ID in text and auto-fill input box
+      const extracted = extractEcomOrderId(input);
+      if (extracted) {
+        ecom = extracted;
+        document.getElementById('ecomId').value = '#' + extracted;
+      }
+
+      const initials = document.getElementById('initials').value.trim();
+      const isExchange = document.getElementById('exchangeCheck').checked;
+      
+      const out = parseAndFormat(input, ecom, initials, isExchange);
+      document.getElementById('output').textContent = out;
+    }
+
+    document.getElementById('input').addEventListener('input', runFormatter);
+    document.getElementById('ecomId').addEventListener('input', runFormatter);
+    document.getElementById('initials').addEventListener('input', runFormatter);
+    document.getElementById('exchangeCheck').addEventListener('change', runFormatter);
+
+    document.getElementById('copy').addEventListener('click', (event) => {
+      const text = document.getElementById('output').textContent;
+      const tempTextarea = document.createElement('textarea');
+      tempTextarea.value = text;
+      tempTextarea.style.position = 'absolute';
+      tempTextarea.style.left = '-9999px';
+      document.body.appendChild(tempTextarea);
+      
+      try {
+        tempTextarea.select();
+        document.execCommand('copy');
+        showCopyPopup(event);
+      } catch (e) {
+        alert('Copy failed');
+      } finally {
+        document.body.removeChild(tempTextarea);
+      }
+    });
+
+    document.getElementById('clear').addEventListener('click', ()=>{
+      document.getElementById('input').value = '';
+      document.getElementById('ecomId').value='';
+      document.getElementById('initials').value=''; 
+      document.getElementById('exchangeCheck').checked = false;
+      document.getElementById('output').textContent='(formatted output will appear here)';
+    });
+
+    // Run on load
+    runFormatter();
+  </script>
+</body>
+</html>
